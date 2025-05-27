@@ -1,34 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>語音新增行程</title>
+  <title>語音建立行程</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    #wave {
+      width: 100%;
+      height: 20px;
+      background: linear-gradient(90deg, #ccc 25%, #999 50%, #ccc 75%);
+      background-size: 200% 100%;
+      animation: wave 1s linear infinite;
+      display: none;
+    }
+
+    @keyframes wave {
+      from { background-position: 200% 0; }
+      to { background-position: 0 0; }
+    }
+  </style>
 </head>
 <body>
-  <h2>【🎤 點我說話 → 自動新增 Google 日曆行程】</h2>
-  <button onclick="startListening()">🎤 開始說話</button>
+  <h2>🎤 語音建立 Google 日曆事件</h2>
+  <button onclick="toggleListening()">🎙 開始/停止錄音</button>
+  <button onclick="playAudio()">🔊 撥放我說的話</button>
+  <button onclick="submitText()">📤 送出到日曆</button>
+  <div id="wave"></div>
   <p id="result">等待輸入...</p>
 
   <script>
-    const output = document.getElementById("result");
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    let isListening = false;
+    let transcript = '';
+    let utterance = null;
+    const wave = document.getElementById("wave");
+
     recognition.lang = "zh-TW";
+    recognition.interimResults = false;
+    recognition.continuous = true; // ✅ 不自動停止，等你手動停止
 
     recognition.onresult = function (event) {
-      const transcript = event.results[0][0].transcript;
-      output.innerText = "你說的是：「" + transcript + "」";
-
-      // 🚀 請將下面更換成你自己的 GAS URL
-      const baseUrl = 'https://script.google.com/macros/s/你的-GAS-URL/exec';
-      fetch(`${baseUrl}?text=${encodeURIComponent(transcript)}`)
-        .then(res => res.text())
-        .then(resp => alert("✅ 已送出：" + resp))
-        .catch(err => alert("❌ 錯誤：" + err));
+      transcript = event.results[event.results.length - 1][0].transcript;
+      document.getElementById("result").innerText = "你說的是：「" + transcript + "」";
     };
 
-    function startListening() {
-      recognition.start();
-      output.innerText = "🎧 聽取中...";
+    recognition.onstart = function () {
+      wave.style.display = "block";
+    };
+
+    recognition.onend = function () {
+      wave.style.display = "none";
+    };
+
+    function toggleListening() {
+      if (!isListening) {
+        recognition.start();
+        isListening = true;
+        document.getElementById("result").innerText = "🎧 開始錄音...";
+      } else {
+        recognition.stop();
+        isListening = false;
+      }
+    }
+
+    function playAudio() {
+      if (transcript) {
+        utterance = new SpeechSynthesisUtterance(transcript);
+        utterance.lang = "zh-TW";
+        speechSynthesis.speak(utterance);
+      } else {
+        alert("⚠ 尚未辨識語音");
+      }
+    }
+
+    function submitText() {
+      if (!transcript) {
+        alert("⚠ 沒有語音輸入可以送出");
+        return;
+      }
+      const baseUrl = 'https://script.google.com/macros/s/AKfycbwy-ljhDoYIoOuBY2r0vskav6Q6DH0CKadWPF0FoGaUvUqNkvhgsfKP7XYxbew-wlLubA/exec'; // ✅ 替換你的 GAS URL
+      fetch(`${baseUrl}?text=${encodeURIComponent(transcript)}`)
+        .then(res => res.text())
+        .then(resp => alert("✅ 建立成功：" + resp))
+        .catch(err => alert("❌ 發生錯誤：" + err));
     }
   </script>
 </body>
