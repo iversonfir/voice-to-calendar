@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>語音新增行程</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h2>【🎤 點我說話 → 自動新增 Google 日曆行程】</h2>
+  <button onclick="startListening()">🎤 開始說話</button>
+  <p id="result">等待輸入...</p>
+
+  <script>
+    const output = document.getElementById("result");
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "zh-TW";
+
+    recognition.onresult = function (event) {
+      const transcript = event.results[0][0].transcript;
+      output.innerText = "你說的是：「" + transcript + "」";
+
+      // 🚀 請將下面更換成你自己的 GAS URL
+      const baseUrl = 'https://script.google.com/macros/s/你的-GAS-URL/exec';
+      fetch(`${baseUrl}?text=${encodeURIComponent(transcript)}`)
+        .then(res => res.text())
+        .then(resp => alert("✅ 已送出：" + resp))
+        .catch(err => alert("❌ 錯誤：" + err));
+    };
+
+    function startListening() {
+      recognition.start();
+      output.innerText = "🎧 聽取中...";
+    }
+  </script>
+</body>
+</html>
