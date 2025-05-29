@@ -119,7 +119,7 @@
         alert("⚠ 沒有語音輸入可以送出");
         return;
       }
-      const baseUrl = 'https://script.google.com/macros/s/AKfycbw60rKTuw3b-Bkjk1WnJvofmgCpSbNOF51S1ARLqSKLz-64Hs_BgAWgd9p8EWGd6EYicw/exec';
+      const baseUrl = 'https://script.google.com/macros/s/AKfycbw1ARXWpWqnEnBU3K3TH-iCadsg_WLIi-g-bC3aDnZImBqrMp13OnTJYB0c2wsyKZ_N/exec';
       fetch(`${baseUrl}?text=${encodeURIComponent(transcript)}`)
         .then(res => res.text())
         .then(resp => alert("✅ 建立成功：" + resp))
